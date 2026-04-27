@@ -1,0 +1,26 @@
+[Unit]
+Description=7 Days to Die Server Manager
+Documentation=https://example.com/your-fork-here
+# Don't try to start until the network is up — UPnP discovery + HTTP
+# listen both want a routable interface.
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/sdtd-server-manager
+# Skip the auto-launch of a browser when running as a service.
+Environment=NO_BROWSER=1
+# Bind to 0.0.0.0 instead of 127.0.0.1 if you want LAN access. Leave
+# commented for localhost-only.
+# Environment=BIND=0.0.0.0:8421
+Restart=on-failure
+RestartSec=5s
+
+# Keep stdout/stderr in the journal — useful for debugging without
+# attaching a terminal.
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=default.target

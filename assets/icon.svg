@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+  <!-- dark amber-tinted background, hard edge -->
+  <rect width="256" height="256" fill="#0a0807"/>
+
+  <!-- corner ticks (HUD framing) -->
+  <g fill="#d97706">
+    <rect x="8"   y="8"   width="28" height="3"/>
+    <rect x="8"   y="8"   width="3"  height="28"/>
+    <rect x="220" y="8"   width="28" height="3"/>
+    <rect x="245" y="8"   width="3"  height="28"/>
+    <rect x="8"   y="245" width="28" height="3"/>
+    <rect x="8"   y="220" width="3"  height="28"/>
+    <rect x="220" y="245" width="28" height="3"/>
+    <rect x="245" y="220" width="3"  height="28"/>
+  </g>
+
+  <!-- bold blocky '7' in amber, distressed via gaps -->
+  <g fill="#f59e0b">
+    <!-- top bar of the 7 -->
+    <rect x="56"  y="56"  width="144" height="32"/>
+    <!-- diagonal stem of the 7, drawn as stacked rects for blocky industrial feel -->
+    <polygon points="180,88 200,88 132,200 112,200"/>
+  </g>
+
+  <!-- subtle scratch / drip suggesting wear -->
+  <g fill="#7a1f00" opacity="0.9">
+    <rect x="56"  y="84"  width="32"  height="4"/>
+    <rect x="172" y="84"  width="28"  height="4"/>
+    <rect x="124" y="200" width="14"  height="10"/>
+  </g>
+
+  <!-- bottom-right small dot (signal / status indicator) -->
+  <circle cx="200" cy="200" r="6" fill="#84cc16"/>
+</svg>
