@@ -1,3 +1,4 @@
+<img width="2500" height="1242" alt="server panel" src="https://github.com/user-attachments/assets/b305c4c3-d411-4a14-ab78-e559cb21b9d9" />
 # sdtd-server-manager
 
 A self-hosted control panel for **7 Days to Die** dedicated servers, written
