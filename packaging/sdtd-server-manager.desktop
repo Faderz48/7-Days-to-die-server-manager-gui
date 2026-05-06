@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=7DTD Server Manager
+GenericName=7 Days to Die Server Manager
+Comment=Self-hosted control panel for 7 Days to Die dedicated servers
+Exec=sdtd-server-manager
+Icon=sdtd-server-manager
+Categories=Game;Network;
+Terminal=true
+StartupNotify=false
+Keywords=7dtd;7daystodie;server;dedicated;manager;

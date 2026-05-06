@@ -1,0 +1,463 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>7DTD :: SERVER CONTROL</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Russo+One&family=VT323&family=Special+Elite&family=Black+Ops+One&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/style.css" />
+  <script>
+    // Apply saved theme as early as possible so the page doesn't flash
+    // the default before the saved one kicks in. The dropdown gets
+    // synced to this value once the DOM is ready.
+    (function () {
+      try {
+        var t = localStorage.getItem("sdtd-theme");
+        if (t && t !== "default") {
+          document.documentElement.setAttribute("data-theme", t);
+        }
+      } catch (e) { /* localStorage unavailable — fall back to default */ }
+    })();
+  </script>
+</head>
+<body>
+  <div class="scanlines"></div>
+
+  <header class="bar">
+    <div class="brand">
+      <span class="brand-mark">⛛</span>
+      <h1>SEVEN DAYS / SERVER CONTROL</h1>
+    </div>
+    <div class="status-pill" id="status-pill">
+      <span class="dot" data-status="stopped"></span>
+      <span id="status-label">unknown</span>
+      <span id="status-uptime" class="muted"></span>
+    </div>
+    <div class="controls">
+      <select id="theme-select" class="theme-picker" aria-label="UI theme" title="UI theme">
+        <optgroup label="Apocalypse">
+          <option value="default">Rusted Wasteland</option>
+          <option value="bloodmoon">Bloodmoon</option>
+          <option value="biohazard">Biohazard</option>
+          <option value="snow">Snow Biome</option>
+          <option value="nuclear">Nuclear</option>
+          <option value="burnt">Burnt Forest</option>
+        </optgroup>
+        <optgroup label="Plain">
+          <option value="midnight">Midnight</option>
+          <option value="hacker">Hacker</option>
+          <option value="paper">Paper (light)</option>
+        </optgroup>
+      </select>
+      <button id="btn-start" class="btn primary">▶ START</button>
+      <button id="btn-stop"  class="btn danger">■ STOP</button>
+    </div>
+  </header>
+
+  <nav class="tabs" role="tablist">
+    <button class="tab active" data-tab="settings">SERVER SETTINGS</button>
+    <button class="tab"        data-tab="world">WORLD &amp; SEED</button>
+    <button class="tab"        data-tab="logs">CONSOLE</button>
+    <button class="tab"        data-tab="players">PLAYERS &amp; ADMINS</button>
+    <button class="tab"        data-tab="backups">BACKUPS</button>
+    <button class="tab"        data-tab="schedule">SCHEDULE</button>
+    <button class="tab"        data-tab="presets">PRESETS</button>
+    <button class="tab"        data-tab="paths">APP CONFIG</button>
+  </nav>
+
+  <main>
+    <!-- ── SERVER SETTINGS ─────────────────────────────────────────── -->
+    <section id="tab-settings" class="tab-panel active">
+      <div class="card connect-card">
+        <h2>SHARE WITH FRIENDS</h2>
+        <p class="muted">Addresses your friends can paste into the in-game
+          <strong>Connect to Server → IP</strong> box. The first one in each
+          row that works for them is the one to use.</p>
+        <div id="connect-list" class="connect-list">
+          <p class="muted small">looking up your IPs…</p>
+        </div>
+      </div>
+
+      <div class="card upnp-card">
+        <h2>NETWORK / PORT FORWARDING</h2>
+        <p class="muted">Click <strong>auto-forward</strong> to ask your router (via UPnP)
+          to open <code>ServerPort</code>, <code>ServerPort+1</code>, and <code>ServerPort+2</code>
+          on both TCP &amp; UDP. Required for friends outside your home network to connect.</p>
+        <div class="row">
+          <button id="btn-upnp-forward" class="btn primary">↗ auto-forward ports (UPnP)</button>
+          <button id="btn-upnp-unmap"   class="btn ghost">remove forwarding</button>
+        </div>
+        <div id="upnp-status" class="upnp-status"></div>
+
+        <div class="firewall-block">
+          <h3 class="subhead">WINDOWS FIREWALL</h3>
+          <p class="muted">Even with the router forwarding ports, Windows Firewall on
+            this PC will silently drop incoming connections unless they're explicitly
+            allowed. Click <strong>allow in firewall</strong> to add rules for
+            <code>ServerPort</code>, <code>+1</code>, and <code>+2</code> (TCP &amp; UDP).
+            Requires running this manager as administrator.</p>
+          <div class="row">
+            <button id="btn-fw-allow"  class="btn primary">⛨ allow in firewall</button>
+            <button id="btn-fw-remove" class="btn ghost">remove rules</button>
+            <span id="fw-status" class="mini-pill" data-state="off">firewall: unknown</span>
+          </div>
+          <div id="fw-detail" class="upnp-status"></div>
+        </div>
+
+        <details class="vpn-fallback">
+          <summary>Can't port forward? Use a virtual LAN instead</summary>
+          <p class="muted">
+            If port forwarding isn't an option (CGNAT ISP, locked-down router,
+            office network), you can use a <strong>virtual LAN</strong> tool. Both you
+            and your friends install the same one, join the same network, and
+            then the server appears to everyone as if it was on a real LAN —
+            no router config, no public IP needed.
+          </p>
+          <div id="vpn-detected"></div>
+          <ul class="vpn-grid">
+            <li>
+              <h3>Radmin VPN</h3>
+              <p class="muted">Free, no player cap, simple. Best first choice for most people.</p>
+              <div class="row">
+                <a class="btn ghost" target="_blank" rel="noopener" href="https://www.radmin-vpn.com/">download</a>
+                <button class="btn ghost" data-vpn-help="radmin">setup steps</button>
+              </div>
+            </li>
+            <li>
+              <h3>Hamachi (LogMeIn)</h3>
+              <p class="muted">Old standby. Free up to 5 players per network, easy to walk friends through.</p>
+              <div class="row">
+                <a class="btn ghost" target="_blank" rel="noopener" href="https://vpn.net/">download</a>
+                <button class="btn ghost" data-vpn-help="hamachi">setup steps</button>
+              </div>
+            </li>
+            <li>
+              <h3>Tailscale</h3>
+              <p class="muted">Modern, fast, free for personal use. Requires each player to log in.</p>
+              <div class="row">
+                <a class="btn ghost" target="_blank" rel="noopener" href="https://tailscale.com/download">download</a>
+                <button class="btn ghost" data-vpn-help="tailscale">setup steps</button>
+              </div>
+            </li>
+            <li>
+              <h3>ZeroTier</h3>
+              <p class="muted">Open-source, free up to 10 nodes. More configurable but slightly fiddlier.</p>
+              <div class="row">
+                <a class="btn ghost" target="_blank" rel="noopener" href="https://www.zerotier.com/download/">download</a>
+                <button class="btn ghost" data-vpn-help="zerotier">setup steps</button>
+              </div>
+            </li>
+          </ul>
+          <div id="vpn-help" class="vpn-help"></div>
+        </details>
+      </div>
+
+      <div class="toolbar">
+        <input id="settings-search" type="search" placeholder="filter properties…" />
+        <span class="spacer"></span>
+        <button id="btn-reload-config" class="btn ghost">⟳ reload from disk</button>
+        <button id="btn-save-config"   class="btn primary">▼ save changes</button>
+      </div>
+      <div id="settings-groups" class="settings-groups">
+        <p class="placeholder">loading server settings…</p>
+      </div>
+    </section>
+
+    <!-- ── WORLD & SEED ─────────────────────────────────────────────── -->
+    <section id="tab-world" class="tab-panel">
+      <div class="grid-2">
+        <div class="card">
+          <h2>WORLD</h2>
+          <p class="muted">Select the map this server runs. Pre-made maps and any
+            random worlds you've already generated will appear here.</p>
+          <label>GameWorld</label>
+          <select id="world-select"></select>
+          <label>WorldGenSeed <span class="muted">— used only for RWG</span></label>
+          <div class="row">
+            <input id="world-seed" type="text" placeholder="e.g. AshenRidge42" />
+            <button id="btn-randomize-seed" class="btn ghost">🎲 randomize</button>
+          </div>
+          <label>WorldGenSize <span class="muted">— RWG size in metres (6144 / 8192 / 10240)</span></label>
+          <input id="world-size" type="number" step="2048" min="6144" max="10240" value="8192" />
+          <label>GameName <span class="muted">— save folder name on disk</span></label>
+          <input id="game-name" type="text" placeholder="My Server Save" />
+          <div class="row end">
+            <button id="btn-delete-active-world" class="btn danger">delete loaded save</button>
+            <button id="btn-apply-world" class="btn primary">▼ apply to config</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>SEED VAULT</h2>
+          <p class="muted">Generate readable, repeatable seed names. Click one to set it
+            as the active <code>WorldGenSeed</code>. Identical seeds produce identical
+            worlds — the actual world generates on first server start.</p>
+          <button id="btn-roll-seeds" class="btn ghost">🎲 roll new seeds</button>
+          <ul id="seed-vault" class="seed-vault"></ul>
+        </div>
+      </div>
+
+      <div class="card world-transfer">
+        <h2>WORLD TRANSFER</h2>
+        <p class="muted">Download an existing save folder as a single <code>.zip</code>,
+          or upload a <code>.zip</code> to drop a pre-built world straight onto the
+          server. Uploaded worlds extract into the saves directory and become
+          available to <code>GameName</code> right after.</p>
+
+        <h3 class="subhead">YOUR WORLDS</h3>
+        <ul id="world-list" class="world-list">
+          <li class="muted">looking up saves…</li>
+        </ul>
+
+        <h3 class="subhead">UPLOAD A WORLD</h3>
+        <p class="muted small">Pick a <code>.zip</code> file. If the zip's top-level
+          folder is named <code>Navezgane</code>, the save lands at
+          <code>&lt;saves_dir&gt;/Navezgane</code>. Use the override field to rename it.</p>
+        <div class="upload-row">
+          <input id="upload-file" type="file" accept=".zip,application/zip" />
+          <input id="upload-name" type="text" placeholder="optional: name override" />
+          <label class="check">
+            <input id="upload-overwrite" type="checkbox" />
+            <span>overwrite if exists</span>
+          </label>
+          <button id="btn-upload-world" class="btn primary">▲ upload world</button>
+        </div>
+        <div id="upload-progress" class="upload-progress"></div>
+      </div>
+      <div class="card world-transfer">
+        <h2>MODS</h2>
+        <p class="muted">Drop a modlet zip in here and it extracts straight into the
+          server's <code>Mods/</code> folder. Most mods on Nexus, the 7DTD forums,
+          or the Mod Launcher come zipped already — upload as-is. The extractor
+          unwraps double-wrapped zips automatically (e.g. <code>MyMod-v1.2/MyMod/</code>).</p>
+
+        <h3 class="subhead">INSTALLED MODS</h3>
+        <ul id="mod-list" class="world-list">
+          <li class="muted">looking up mods…</li>
+        </ul>
+
+        <h3 class="subhead">UPLOAD A MOD</h3>
+        <p class="muted small">Server must be stopped before installing or removing mods.</p>
+        <div class="upload-row">
+          <input id="mod-upload-file" type="file" accept=".zip,application/zip" />
+          <input id="mod-upload-name" type="text" placeholder="optional: name override" />
+          <label class="check">
+            <input id="mod-upload-overwrite" type="checkbox" />
+            <span>overwrite if exists</span>
+          </label>
+          <button id="btn-upload-mod" class="btn primary">▲ install mod</button>
+        </div>
+        <div id="mod-upload-progress" class="upload-progress"></div>
+      </div>
+    </section>
+    <section id="tab-presets" class="tab-panel">
+      <div class="card">
+        <h2>SAVED CONFIG PRESETS</h2>
+        <p class="muted">Save the current <code>serverconfig.xml</code> under a name so
+          you can swap between, say, a PvE and PvP setup with one click. Each preset
+          also has <strong>export</strong> and <strong>import</strong> — handy for
+          sharing a tuned config with friends or backing one up off-machine.</p>
+        <div class="row">
+          <input id="preset-name" type="text" placeholder="preset name (e.g. PvE-easy)" />
+          <button id="btn-save-preset" class="btn primary">▼ save current as preset</button>
+        </div>
+        <div class="row" style="margin-top: 6px">
+          <input id="preset-import-name" type="text"
+                 placeholder="name for the imported preset (leave blank to use the file name)" />
+          <button id="btn-import-preset" class="btn ghost">↥ import from file…</button>
+        </div>
+        <ul id="preset-list" class="preset-list"></ul>
+      </div>
+    </section>
+
+    <!-- ── CONSOLE ─────────────────────────────────────────────────── -->
+    <section id="tab-logs" class="tab-panel">
+      <div class="toolbar">
+        <span class="muted">live console output</span>
+        <span class="spacer"></span>
+        <span id="telnet-pill" class="mini-pill" data-state="off">telnet: off</span>
+        <label class="check">
+          <input type="checkbox" id="logs-autoscroll" checked />
+          <span>autoscroll</span>
+        </label>
+        <button id="btn-clear-logs" class="btn ghost">clear</button>
+      </div>
+      <pre id="log-stream" class="console"></pre>
+      <form id="console-form" class="console-input">
+        <span class="prompt">&gt;</span>
+        <input id="console-cmd" type="text" autocomplete="off"
+               placeholder="type a command (e.g. say hello, lp, kick name reason, gt, weather, help)" />
+        <button type="submit" class="btn primary">send</button>
+      </form>
+      <p class="muted small">Tip: requires <code>TelnetEnabled=true</code> + <code>TelnetPassword</code>
+         set in serverconfig.xml. Common commands: <code>lp</code> (list players),
+         <code>say &lt;text&gt;</code>, <code>kick &lt;name&gt; [reason]</code>,
+         <code>ban add &lt;steamid&gt; &lt;duration&gt; &lt;unit&gt;</code>,
+         <code>gt</code> (game time), <code>weather</code>, <code>shutdown</code>.</p>
+    </section>
+
+    <!-- ── PLAYERS &amp; ADMINS ─────────────────────────────────────── -->
+    <section id="tab-players" class="tab-panel">
+      <div class="grid-2">
+        <div class="card">
+          <h2>ADMINS</h2>
+          <p class="muted">Permission level <code>0</code> = full access; <code>1000</code> = default
+            user. A player can run commands at their own level or higher.</p>
+          <ul id="admin-list" class="user-list"></ul>
+          <div class="row">
+            <select id="admin-platform">
+              <option value="Steam">Steam</option>
+              <option value="Xbl">Xbox Live</option>
+            </select>
+            <input id="admin-userid" type="text" placeholder="user id (e.g. Steam64)" />
+            <input id="admin-name"   type="text" placeholder="display name (optional)" />
+            <input id="admin-level"  type="number" min="0" max="1000" value="0" style="width:90px" />
+            <button id="btn-add-admin" class="btn primary">+ add</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>WHITELIST</h2>
+          <p class="muted">If non-empty, only listed players can join.</p>
+          <ul id="whitelist-list" class="user-list"></ul>
+          <div class="row">
+            <select id="wl-platform">
+              <option value="Steam">Steam</option>
+              <option value="Xbl">Xbox Live</option>
+            </select>
+            <input id="wl-userid" type="text" placeholder="user id" />
+            <input id="wl-name"   type="text" placeholder="display name (optional)" />
+            <button id="btn-add-wl" class="btn primary">+ add</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>BANS</h2>
+          <p class="muted">Permanent. For temporary bans use the
+            <code>ban add</code> console command.</p>
+          <ul id="ban-list" class="user-list"></ul>
+          <div class="row">
+            <select id="ban-platform">
+              <option value="Steam">Steam</option>
+              <option value="Xbl">Xbox Live</option>
+            </select>
+            <input id="ban-userid" type="text" placeholder="user id" />
+            <input id="ban-name"   type="text" placeholder="display name (optional)" />
+            <input id="ban-reason" type="text" placeholder="reason (optional)" />
+            <button id="btn-add-ban" class="btn primary">+ add</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>COMMAND PERMISSIONS</h2>
+          <p class="muted">Override the required permission level per command.
+            <code>0</code> = admins only, <code>1000</code> = everyone.</p>
+          <ul id="perm-list" class="user-list"></ul>
+          <div class="row">
+            <input id="perm-cmd"   type="text" placeholder="command (e.g. kick)" />
+            <input id="perm-level" type="number" min="0" max="1000" value="1" style="width:90px" />
+            <button id="btn-add-perm" class="btn primary">+ add</button>
+          </div>
+        </div>
+      </div>
+      <div class="row end">
+        <button id="btn-save-admin" class="btn primary">▼ save admin file</button>
+      </div>
+    </section>
+
+    <!-- ── BACKUPS ─────────────────────────────────────────────────── -->
+    <section id="tab-backups" class="tab-panel">
+      <div class="card">
+        <h2>SAVE BACKUPS</h2>
+        <p class="muted">Snapshots the current save folder (the one the server uses,
+          based on <code>GameName</code> in serverconfig.xml). Restores rename your
+          existing save aside instead of deleting it, so you can always undo.</p>
+        <div class="row">
+          <input id="backup-note" type="text" placeholder="optional note (e.g. before mod test)" />
+          <button id="btn-create-backup" class="btn primary">▼ create backup now</button>
+        </div>
+        <ul id="backup-list" class="backup-list"></ul>
+      </div>
+    </section>
+
+    <!-- ── SCHEDULE ────────────────────────────────────────────────── -->
+    <section id="tab-schedule" class="tab-panel">
+      <div class="card">
+        <h2>SCHEDULED TASKS</h2>
+        <p class="muted">Daily tasks that fire at HH:MM (24h, local time). Common pattern:
+          a 5am restart and a 4am backup. The scheduler runs while the manager is
+          running.</p>
+        <div class="row">
+          <input id="sched-name" type="text" placeholder="name (e.g. nightly restart)" />
+          <input id="sched-time" type="time" value="04:00" />
+          <select id="sched-action">
+            <option value="restart">restart</option>
+            <option value="stop">stop</option>
+            <option value="start">start</option>
+            <option value="backup">backup</option>
+          </select>
+          <button id="btn-add-sched" class="btn primary">+ add</button>
+        </div>
+        <ul id="schedule-list" class="schedule-list"></ul>
+      </div>
+    </section>
+
+    <!-- ── APP CONFIG ──────────────────────────────────────────────── -->
+    <section id="tab-paths" class="tab-panel">
+      <div class="card">
+        <h2>APP PATHS</h2>
+        <p class="muted">Tell the manager where 7 Days to Die's dedicated server lives.
+          These are saved between sessions. Use <strong>Browse</strong> to open a
+          native folder picker.</p>
+
+        <label>Server install directory <span class="muted">(folder containing the executable)</span></label>
+        <div class="path-row">
+          <input id="path-install" type="text" />
+          <button class="btn ghost" data-pick="path-install" data-pick-kind="dir"
+                  data-pick-title="Select 7DTD dedicated server install folder">browse…</button>
+        </div>
+
+        <label>serverconfig.xml path</label>
+        <div class="path-row">
+          <input id="path-config" type="text" />
+          <button class="btn ghost" data-pick="path-config" data-pick-kind="file"
+                  data-pick-title="Select serverconfig.xml">browse…</button>
+        </div>
+
+        <label>Saves directory</label>
+        <div class="path-row">
+          <input id="path-saves" type="text" />
+          <button class="btn ghost" data-pick="path-saves" data-pick-kind="dir"
+                  data-pick-title="Select saves directory">browse…</button>
+        </div>
+
+        <label>Generated worlds directory</label>
+        <div class="path-row">
+          <input id="path-worlds" type="text" />
+          <button class="btn ghost" data-pick="path-worlds" data-pick-kind="dir"
+                  data-pick-title="Select generated worlds directory">browse…</button>
+        </div>
+
+        <label>Backup directory <span class="muted">— where this manager stores save snapshots</span></label>
+        <div class="path-row">
+          <input id="path-backups" type="text" />
+          <button class="btn ghost" data-pick="path-backups" data-pick-kind="dir"
+                  data-pick-title="Select backup directory">browse…</button>
+        </div>
+
+        <div class="row end">
+          <button id="btn-save-paths" class="btn primary">▼ save paths</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="toast-stack" class="toast-stack" aria-live="polite"></div>
+
+  <script src="/app.js" defer></script>
+</body>
+</html>

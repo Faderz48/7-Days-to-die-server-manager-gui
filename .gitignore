@@ -1,4 +1,7 @@
 /target/
 /_github_upload/
+/dist/
+/.tools/
 *.pdb
 *.exe
+*.AppImage
